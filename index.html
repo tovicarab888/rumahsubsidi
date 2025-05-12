@@ -3848,7 +3848,7 @@ footer {
     </div>
     
     <div class="wa-confirm-footer">
-      <a href="https://wa.me/628977771080" class="whatsapp-btn pulse" target="_blank">
+      <a href="#" id="whatsappLink" class="whatsapp-btn pulse" target="_blank">
         <i class="fab fa-whatsapp"></i> Buka WhatsApp Sekarang
       </a>
       <button class="close-btn" onclick="closeWaConfirm()">
@@ -3857,7 +3857,6 @@ footer {
     </div>
   </div>
 </div>
-
   
     <!-- Deferred Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.6.0/glide.min.js" defer></script>
@@ -4344,7 +4343,7 @@ const marketingTeam = [
     },
     { 
         name: "Royyan", 
-        phone: "62895705105010",
+        phone: "6281223202218",
         counter: 0,
         role: "Marketing Executive",
         available: true
@@ -4353,6 +4352,7 @@ const marketingTeam = [
 
 // Get next available marketing person with true round-robin
 let lastAssignedIndex = -1;
+let currentCountdownInterval = null;
 
 function getNextMarketing() {
     // Filter only available marketers
@@ -4377,6 +4377,84 @@ function getNextMarketing() {
         role: selected.role
     };
 }
+
+// ===== WHATSAPP CONFIRMATION FUNCTIONS =====
+window.closeWaConfirm = function() {
+    const modal = document.getElementById('waConfirmModal');
+    if (!modal) return;
+    
+    // Clear any existing countdown
+    if (currentCountdownInterval) {
+        clearInterval(currentCountdownInterval);
+        currentCountdownInterval = null;
+    }
+    
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+};
+
+window.showWaConfirm = function(marketingName) {
+    const modal = document.getElementById('waConfirmModal');
+    if (!modal) return;
+    
+    // Find the marketing person
+    const marketing = marketingTeam.find(m => m.name === marketingName) || marketingTeam[0];
+    
+    // Format WhatsApp URL
+    const formattedPhone = marketing.phone.startsWith('62') ? marketing.phone : 
+                         marketing.phone.startsWith('0') ? '62' + marketing.phone.substring(1) : 
+                         '62' + marketing.phone;
+    const whatsappUrl = `https://wa.me/${formattedPhone}`;
+    
+    // Update WhatsApp link
+    const whatsappLink = document.getElementById('whatsappLink');
+    if (whatsappLink) {
+        whatsappLink.href = whatsappLink.getAttribute('href', whatsappUrl);
+    }
+    
+    // Update modal content with marketing name
+    const confirmTitle = modal.querySelector('.wa-confirm-title');
+    if (confirmTitle) {
+        confirmTitle.textContent = `Formulir Terkirim ke ${marketing.name}!`;
+    }
+    
+    const confirmSubtitle = modal.querySelector('.wa-confirm-subtitle');
+    if (confirmSubtitle) {
+        confirmSubtitle.textContent = `Anda akan diarahkan ke WhatsApp ${marketing.name} dalam 5 detik`;
+    }
+    
+    const whatsappBtn = modal.querySelector('.whatsapp-btn');
+    if (whatsappBtn) {
+        whatsappBtn.textContent = `Chat ${marketing.name} Sekarang`;
+        whatsappBtn.href = whatsappUrl;
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    let count = 5;
+    const countdownElement = document.getElementById('countdown');
+    if (countdownElement) {
+        countdownElement.textContent = count;
+        
+        // Clear any existing countdown
+        if (currentCountdownInterval) {
+            clearInterval(currentCountdownInterval);
+        }
+        
+        currentCountdownInterval = setInterval(() => {
+            count--;
+            countdownElement.textContent = count;
+            
+            if (count <= 0) {
+                clearInterval(currentCountdownInterval);
+                currentCountdownInterval = null;
+                window.open(whatsappUrl, '_blank');
+                closeWaConfirm();
+            }
+        }, 1000);
+    }
+};
 
 // ===== FORM SUBMISSION =====
 function initializeFormSubmission() {
@@ -4423,7 +4501,9 @@ function initializeFormSubmission() {
         showWaConfirm(marketing.name);
         
         // Close form modal
-        closeFormModal();
+        if (typeof closeFormModal === 'function') {
+            closeFormModal();
+        }
         
         // Reset form
         form.reset();
@@ -4435,56 +4515,10 @@ function initializeFormSubmission() {
     });
 }
 
-// ===== WHATSAPP CONFIRMATION =====
-window.showWaConfirm = function(marketingName) {
-    const modal = document.getElementById('waConfirmModal');
-    if (!modal) return;
-    
-    // Update modal content with marketing name
-    const confirmTitle = modal.querySelector('.wa-confirm-title');
-    if (confirmTitle) {
-        confirmTitle.textContent = `Formulir Terkirim ke ${marketingName}!`;
-    }
-    
-    const confirmSubtitle = modal.querySelector('.wa-confirm-subtitle');
-    if (confirmSubtitle) {
-        confirmSubtitle.textContent = `Anda akan diarahkan ke WhatsApp ${marketingName} dalam 5 detik`;
-    }
-    
-    const whatsappBtn = modal.querySelector('.whatsapp-btn');
-    if (whatsappBtn) {
-        whatsappBtn.textContent = `Chat ${marketingName} Sekarang`;
-    }
-    
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    let count = 5;
-    const countdownElement = document.getElementById('countdown');
-    if (countdownElement) {
-        countdownElement.textContent = count;
-        
-        const countdownInterval = setInterval(() => {
-            count--;
-            countdownElement.textContent = count;
-            
-            if (count <= 0) {
-                clearInterval(countdownInterval);
-                if (!window.whatsappOpened) {
-                    window.whatsappOpened = true;
-                    // Find the marketing person's WhatsApp URL again
-                    const marketing = marketingTeam.find(m => m.name === marketingName);
-                    if (marketing) {
-                        const formattedPhone = marketing.phone.startsWith('62') ? marketing.phone : 
-                                             marketing.phone.startsWith('0') ? '62' + marketing.phone.substring(1) : 
-                                             '62' + marketing.phone;
-                        window.open(`https://wa.me/${formattedPhone}`, '_blank');
-                    }
-                }
-            }
-        }, 1000);
-    }
-};
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFormSubmission();
+});
 
 // ===== CACHE BUSTING =====
 // Tambahkan parameter versi pada CSS dan JS
