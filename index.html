@@ -4108,75 +4108,6 @@ function initializeNotifications() {
     });
 }
 
-// ===== UPDATED FORM SUBMISSION =====
-function submitFormData(name, city, phone, job, income) {
-    const marketing = getNextMarketing();
-    
-    const message = `Assalamu'alaikum Bpk/Ibu ${name},\n\nSaya *${marketing.name}* dari Tim Marketing Kertamulya Residence. Terima kasih atas minat Anda terhadap perumahan syariah kami.\n\nBerikut detail informasi yang Anda minta:\n\n🔹 Nama: ${name}\n🔹 Kota: ${city}\n🔹 WhatsApp: ${phone}\n🔹 Pekerjaan: ${job}\n🔹 Penghasilan: ${income}\n\n📌 Promo Spesial untuk Anda:\n- Booking Fee 500rb\n- Motor Listrik Gratis\n- Cicilan Mulai Rp1 Juta/Bulan\n\nMohon konfirmasi kapan waktu yang tepat untuk kami jelaskan lebih detail via WhatsApp atau telepon. Atau Anda bisa langsung klik link berikut untuk chat langsung:\nhttps://wa.me/${marketing.phone}?text=Saya%20${encodeURIComponent(name)}%20mau%20info%20lebih%20lanjut%20tentang%20Kertamulya%20Residence\n\nTerima kasih,\n${marketing.name}\nTim Marketing Kertamulya Residence`;
-    
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${marketing.phone}?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
-    showWaConfirm();
-    document.getElementById('modalContactForm').reset();
-    
-    // Tracking
-    if (typeof fbq !== 'undefined') {
-        fbq('track', 'Lead');
-    }
-    if (typeof gtag !== 'undefined') {
-        gtag('event', 'conversion');
-    }
-}
-// ===== UPDATE SEMUA CTA BUTTONS =====
-document.querySelectorAll('[onclick="showFormModal()"], .btn-primary, .whatsapp-float').forEach(button => {
-    button.addEventListener('click', function(e) {
-        // Untuk button yang langsung ke WhatsApp
-        if (this.classList.contains('whatsapp-float')) {
-            e.preventDefault();
-            const marketing = getNextMarketing();
-            window.open(`https://wa.me/${marketing.phone}?text=Saya%20tertarik%20Kertamulya%20Residence%20dan%20mau%20info%20lebih%20lanjut%20dengan%20${encodeURIComponent(marketing.name)}`, '_blank');
-        }
-    });
-});
-
-// ===== WHATSAPP CONFIRMATION =====
-window.showWaConfirm = function() {
-    const modal = document.getElementById('waConfirmModal');
-    if (!modal) return;
-    
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    let count = 5;
-    const countdownElement = document.getElementById('countdown');
-    if (countdownElement) {
-        countdownElement.textContent = count;
-        
-        const countdownInterval = setInterval(() => {
-            count--;
-            countdownElement.textContent = count;
-            
-            if (count <= 0) {
-                clearInterval(countdownInterval);
-                if (!window.whatsappOpened) {
-                    window.open('https://wa.me/628977771080', '_blank');
-                    window.whatsappOpened = true;
-                }
-            }
-        }, 1000);
-    }
-};
-
-window.closeWaConfirm = function() {
-    const modal = document.getElementById('waConfirmModal');
-    if (!modal) return;
-    
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
-    window.whatsappOpened = false;
-};
 
 // ===== SMOOTH SCROLLING =====
 function initializeSmoothScrolling() {
@@ -4388,6 +4319,188 @@ if (typeof fbq === 'undefined') {
     fbq('init', 'YOUR_PIXEL_ID');
     fbq('track', 'PageView');
 }
+// ===== MARKETING TEAM ROTATION SYSTEM =====
+const marketingTeam = [
+    { 
+        name: "Taufik Marie", 
+        phone: "628977771080",
+        counter: 0,
+        role: "Digital Manager"
+    },
+    { 
+        name: "Rahma", 
+        phone: "6285523613940",
+        counter: 0,
+        role: "Marketing Executive"
+    },
+    { 
+        name: "Syifa", 
+        phone: "6285794058368",
+        counter: 0,
+        role: "Marketing Executive"
+    },
+    { 
+        name: "Royyan", 
+        phone: "62895705105010",
+        counter: 0,
+        role: "Marketing Executive"
+    }
+];
+
+// Get next available marketing person using round-robin
+function getNextMarketing() {
+    // Find the person with least assignments
+    let minCounter = Math.min(...marketingTeam.map(m => m.counter));
+    let availableMarketers = marketingTeam.filter(m => m.counter === minCounter);
+    
+    // If multiple have same count, pick random from them
+    let selected = availableMarketers[Math.floor(Math.random() * availableMarketers.length)];
+    
+    // Increment their counter
+    selected.counter++;
+    
+    // Return a copy to avoid modification
+    return {
+        name: selected.name,
+        phone: selected.phone,
+        role: selected.role
+    };
+}
+
+// ===== UPDATED FORM SUBMISSION =====
+function submitFormData(name, city, phone, job, income) {
+    const marketing = getNextMarketing();
+    
+    // Format pesan yang lebih menarik dengan emoji dan bold text
+    const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh
+    
+*📌 DATA PEMESANAN KERTAMULYA RESIDENCE*
+
+👤 *Nama Lengkap*: ${name}
+🏙️ *Kota Asal/Tinggal*: ${city}
+📱 *Nomor WhatsApp*: ${phone}
+💼 *Pekerjaan*: ${job}
+💰 *Penghasilan Per Bulan*: ${income}
+
+*📢 INFO PROMO TERBARU*
+🔹 Booking Fee *Rp500.000* saja
+🔹 *DP 0%* via Bank Syariah
+🔹 Cicilan mulai *Rp1 Juta/Bulan*
+🔹 Gratis *Motor Listrik* setelah 6x angsuran
+
+Mohon info detail tentang:
+1. Spesifikasi rumah lengkap
+2. Cara pengajuan KPR Syariah
+3. Jadwal survey lokasi
+
+*🤝 DITANGANI OLEH*
+${marketing.role}: *${marketing.name}*
+    
+Terima kasih. Wassalamu'alaikum Warahmatullahi Wabarakatuh`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${marketing.phone}?text=${encodedMessage}`;
+    
+    // Buka WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    // Tampilkan konfirmasi
+    showWaConfirm(marketing.name);
+    
+    // Reset form
+    document.getElementById('modalContactForm').reset();
+    
+    // Tracking
+    if (typeof fbq !== 'undefined') {
+        fbq('track', 'Lead');
+    }
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'conversion');
+    }
+}
+
+// ===== WHATSAPP CONFIRMATION =====
+window.showWaConfirm = function(marketingName) {
+    const modal = document.getElementById('waConfirmModal');
+    if (!modal) return;
+    
+    // Update modal content dengan nama marketing
+    const confirmTitle = modal.querySelector('.wa-confirm-title');
+    if (confirmTitle) {
+        confirmTitle.textContent = `Formulir Terkirim!`;
+    }
+    
+    const confirmSubtitle = modal.querySelector('.wa-confirm-subtitle');
+    if (confirmSubtitle) {
+        confirmSubtitle.textContent = `Anda akan diarahkan ke WhatsApp ${marketingName}`;
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    let count = 5;
+    const countdownElement = document.getElementById('countdown');
+    if (countdownElement) {
+        countdownElement.textContent = count;
+        
+        const countdownInterval = setInterval(() => {
+            count--;
+            countdownElement.textContent = count;
+            
+            if (count <= 0) {
+                clearInterval(countdownInterval);
+                if (!window.whatsappOpened) {
+                    window.whatsappOpened = true;
+                }
+            }
+        }, 1000);
+    }
+};
+
+// Fungsi untuk menutup modal konfirmasi WhatsApp
+window.closeWaConfirm = function() {
+    const modal = document.getElementById('waConfirmModal');
+    if (!modal) return;
+    
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+    
+    // Hentikan countdown jika masih berjalan
+    const countdownElement = document.getElementById('countdown');
+    if (countdownElement) {
+        countdownElement.textContent = '0';
+    }
+};
+
+// Event listener untuk tombol close
+document.addEventListener('DOMContentLoaded', function() {
+    const closeButtons = document.querySelectorAll('.wa-confirm-close, .close-btn');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', closeWaConfirm);
+    });
+});
+
+// ===== CACHE BUSTING =====
+// Tambahkan parameter versi pada CSS dan JS
+document.addEventListener('DOMContentLoaded', function() {
+    const version = '1.0.3'; // Update versi ini setiap ada perubahan
+    
+    // Update CSS
+    const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+    stylesheets.forEach(sheet => {
+        if (sheet.href.includes('style.css')) {
+            sheet.href = sheet.href.split('?')[0] + '?v=' + version;
+        }
+    });
+    
+    // Update JS
+    const scripts = document.querySelectorAll('script[src]');
+    scripts.forEach(script => {
+        if (script.src.includes('main.js')) {
+            script.src = script.src.split('?')[0] + '?v=' + version;
+        }
+    });
+});
   
 </script>
 </body>
